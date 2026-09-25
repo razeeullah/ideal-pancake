@@ -6,50 +6,31 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
-  ArrowLeftRight,
-  ArrowRight,
   Banknote,
-  Barcode,
-  CalendarDays,
   CheckCircle2,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  CircleDollarSign,
   Clock,
   CreditCard,
-  Delete,
-  Filter,
   HelpCircle,
-  History,
-  Info,
-  Keyboard,
   Landmark,
   LayoutGrid,
   List,
   LoaderCircle,
   MessageCircle,
   Minus,
-  PackageCheck,
-  PackagePlus,
   PauseCircle,
   PlayCircle,
   Plus,
   Printer,
-  Receipt,
   RotateCcw,
   Search,
   ShoppingCart,
-  SlidersHorizontal,
   Smartphone,
-  Store,
   Trash2,
-  UserCheck,
   UserPlus,
   UserRound,
-  WalletCards,
   X,
-  Zap,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -186,21 +167,13 @@ export function PointOfSaleDemo() {
 
   const [dialog, setDialog] = useState<
     | "customer"
-    | "clear"
     | "hold"
     | "heldList"
-    | "return"
-    | "whatsapp"
-    | "print"
     | "success"
-    | "product"
     | "shortcuts"
     | null
   >(null);
-  const [selectedProduct, setSelectedProduct] = useState<PosProduct | null>(null);
   const [holdNote, setHoldNote] = useState("");
-  const [returnReason, setReturnReason] = useState("");
-  const [returnQuantity, setReturnQuantity] = useState(1);
   const [completedInvoice, setCompletedInvoice] = useState<CompletedInvoice | null>(null);
 
   // Restore saved held invoices & preferences, but never force dummy cart items

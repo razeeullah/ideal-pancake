@@ -1,11 +1,13 @@
 import { unstable_cache } from "next/cache";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type CacheCallback<T extends (...args: any[]) => any> = T;
 
 /**
  * Wraps a database query with Next.js unstable_cache.
  * This caches the result on the server to reduce database load.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function withCache<T extends (...args: any[]) => any>(
   cb: CacheCallback<T>,
   keyParts: string[],

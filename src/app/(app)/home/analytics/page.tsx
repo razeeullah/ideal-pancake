@@ -6,8 +6,6 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -16,23 +14,19 @@ import {
   YAxis,
 } from "recharts";
 import {
-  ArrowDownRight,
   ArrowUpRight,
-  Calendar,
   DollarSign,
   Download,
-  Filter,
   Percent,
   Receipt,
   ShoppingBag,
-  TrendingUp,
 } from "lucide-react";
 
 import { PageTitle } from "@/components/layout/page-title";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { REVENUE_DATA, SALES_TREND_DATA, TOP_SELLING_PRODUCTS } from "@/features/dashboard/mock-data";
+import { REVENUE_DATA, TOP_SELLING_PRODUCTS } from "@/features/dashboard/mock-data";
 
 const CATEGORY_SHARE = [
   { name: "Beverages", value: 38, color: "#2563eb" },
@@ -176,10 +170,10 @@ export default function AnalyticsPage() {
                   <YAxis
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(v) => `${Math.round(v / 1000)}k`}
+                    tickFormatter={(v: number) => `${Math.round(v / 1000)}k`}
                   />
                   <Tooltip
-                    formatter={(v: any) => [`Rs. ${Number(v).toLocaleString()}`, ""]}
+                    formatter={(v: unknown) => [`Rs. ${Number(v).toLocaleString()}`, ""]}
                     contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
                   />
                   <Bar dataKey="revenue" name="Revenue" fill="#2563eb" radius={[4, 4, 0, 0]} />
@@ -212,7 +206,7 @@ export default function AnalyticsPage() {
                       <Cell key={entry.name} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v: any) => [`${v}%`, "Share"]} />
+                  <Tooltip formatter={(v: unknown) => [`${String(v)}%`, "Share"]} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
