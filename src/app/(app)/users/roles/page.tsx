@@ -16,6 +16,11 @@ export default async function RolesPage() {
       <PageTitle
         title="Roles and permissions"
         description="System identifiers are immutable. Custom roles support least-privilege permission sets."
+        tabs={[
+          { href: "/users", label: "Members" },
+          { href: "/users/roles", label: "Roles & Permissions", active: true },
+          { href: "/audit-logs", label: "Activity Log" },
+        ]}
         actions={
           <Button asChild>
             <Link href="/users/roles/new">

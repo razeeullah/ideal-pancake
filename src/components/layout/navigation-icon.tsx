@@ -1,36 +1,26 @@
 import {
-  BarChart3,
-  CircleDollarSign,
+  BadgeDollarSign,
   ClipboardList,
-  LayoutDashboard,
+  Home,
   Package,
-  ReceiptText,
-  ScrollText,
   Settings,
   ShoppingCart,
-  Truck,
-  UserCog,
   Users,
-  Warehouse,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
 import type { NavigationIconKey } from "@/components/layout/navigation";
 
 const navigationIcons = {
-  dashboard: LayoutDashboard,
-  pos: ShoppingCart,
-  sales: ReceiptText,
+  home: Home,
+  sell: ShoppingCart,
   products: Package,
-  inventory: Warehouse,
   purchases: ClipboardList,
-  suppliers: Truck,
-  customers: Users,
-  expenses: CircleDollarSign,
-  reports: BarChart3,
-  users: UserCog,
+  customers: UsersRound,
+  expenses: BadgeDollarSign,
+  team: Users,
   settings: Settings,
-  audit: ScrollText,
 } satisfies Record<NavigationIconKey, LucideIcon>;
 
 export function NavigationIcon({

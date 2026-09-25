@@ -69,4 +69,6 @@ export interface CompletedInvoice {
   taxPaise: number;
   grandTotalPaise: number;
   paymentMethod: PaymentMethod;
+  cashTenderedPaise?: number | undefined;
+  changeDuePaise?: number | undefined;
 }

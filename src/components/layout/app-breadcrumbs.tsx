@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { findNavigationItemBySegment } from "@/components/layout/navigation";
+import { findNavigationItemByPathname } from "@/components/layout/navigation";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -13,21 +13,44 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
+/** Map sub-paths to breadcrumb labels */
+const subPathLabels: Record<string, string> = {
+  "/pos": "New Sale",
+  "/sales": "History",
+  "/inventory": "Stock",
+  "/inventory/low-stock": "Low Stock",
+  "/inventory/adjustments": "Adjustments",
+  "/inventory/movements": "Movements",
+  "/inventory/valuation": "Valuation",
+  "/suppliers": "Suppliers",
+  "/users": "Members",
+  "/users/roles": "Roles",
+  "/audit-logs": "Activity Log",
+  "/home/analytics": "Analytics",
+  "/account/change-password": "Change Password",
+};
+
 export function AppBreadcrumbs() {
   const pathname = usePathname();
-  const segment = pathname.split("/").filter(Boolean)[0];
-  const currentItem = segment
-    ? findNavigationItemBySegment(segment)
-    : undefined;
-  const accountPageLabel =
-    pathname === "/account/change-password" ? "Change password" : undefined;
 
-  if ((!currentItem && !accountPageLabel) || currentItem?.href === "/dashboard") {
+  // Try to find exact sub-path label first
+  const subLabel = subPathLabels[pathname];
+  const parentItem = findNavigationItemByPathname(pathname);
+
+  // If on a top-level nav page (not a sub-page), just show the section name
+  const isTopLevel = parentItem && parentItem.href === pathname;
+
+  if (!parentItem) {
+    // Fallback for unknown paths
+    return null;
+  }
+
+  if (isTopLevel) {
     return (
       <Breadcrumb className="hidden sm:block">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbPage>Dashboard</BreadcrumbPage>
+            <BreadcrumbPage>{parentItem.label}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -39,13 +62,17 @@ export function AppBreadcrumbs() {
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link href="/dashboard">Dashboard</Link>
+            <Link href={parentItem.href}>{parentItem.label}</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage>{currentItem?.label ?? accountPageLabel}</BreadcrumbPage>
-        </BreadcrumbItem>
+        {subLabel && (
+          <>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{subLabel}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </>
+        )}
       </BreadcrumbList>
     </Breadcrumb>
   );

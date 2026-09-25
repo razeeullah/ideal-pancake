@@ -41,22 +41,24 @@ export function AppShell({
     <div className="bg-background min-h-dvh">
       <aside className="bg-sidebar fixed inset-y-0 left-0 z-30 hidden w-64 border-r md:flex md:flex-col">
         <div className="flex h-16 items-center gap-3 px-5">
-          <div className="bg-sidebar-primary text-sidebar-primary-foreground grid size-9 place-items-center rounded-lg">
+          <div className="bg-sidebar-primary text-sidebar-primary-foreground grid size-9 shrink-0 place-items-center rounded-lg">
             <Store className="size-4" aria-hidden="true" />
           </div>
           <div className="min-w-0">
-            <p className="truncate font-semibold tracking-tight">Retail POS</p>
-            <p className="text-muted-foreground truncate text-xs">
+            <p className="truncate text-sm font-semibold leading-tight tracking-tight">
               {context.business.name}
+            </p>
+            <p className="text-sidebar-foreground/50 truncate text-[11px]">
+              Point of Sale
             </p>
           </div>
         </div>
         <Separator />
         <DesktopNavigation items={visibleNavigationItems} />
-        <div className="border-t p-4">
-          <div className="text-muted-foreground flex items-center gap-2 text-xs">
-            <ShieldCheck className="text-primary size-4" aria-hidden="true" />
-            Server-enforced access
+        <div className="border-t p-3">
+          <div className="text-sidebar-foreground/40 flex items-center gap-2 text-[11px]">
+            <ShieldCheck className="text-sidebar-foreground/40 size-3.5" aria-hidden="true" />
+            Role-based access control
           </div>
         </div>
       </aside>

@@ -79,8 +79,12 @@ export default async function SalesPage() {
   return (
     <div className="mx-auto max-w-[1600px] space-y-5">
       <PageTitle
-        title="Sales"
+        title="Sales History"
         description="Track sales performance and manage receipts across your assigned locations."
+        tabs={[
+          { href: "/pos", label: "New Sale" },
+          { href: "/sales", label: "Sales History", active: true },
+        ]}
       />
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(({ label, value, note, icon: Icon, tone }) => (

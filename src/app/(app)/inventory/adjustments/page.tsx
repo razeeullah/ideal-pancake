@@ -43,6 +43,13 @@ export default async function StockAdjustmentsPage({
       <PageTitle
         title="Stock adjustments"
         description="Draft and completed inventory corrections."
+        tabs={[
+          { href: "/products", label: "All Products" },
+          { href: "/inventory", label: "Stock" },
+          { href: "/inventory/low-stock", label: "Low Stock" },
+          { href: "/inventory/adjustments", label: "Adjustments", active: true },
+          { href: "/products/categories", label: "Categories" },
+        ]}
         actions={
           context.permissions.has("inventory.adjust") ? (
             <Button asChild>

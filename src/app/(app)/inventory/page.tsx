@@ -82,8 +82,15 @@ export default async function InventoryPage({
   return (
     <div className="mx-auto max-w-[1600px] space-y-5">
       <PageTitle
-        title="Inventory"
+        title="Stock & Inventory"
         description={`Manage stock, track availability, and monitor inventory at ${location.name}.`}
+        tabs={[
+          { href: "/products", label: "All Products" },
+          { href: "/inventory", label: "Stock", active: true },
+          { href: "/inventory/low-stock", label: "Low Stock" },
+          { href: "/inventory/adjustments", label: "Adjustments" },
+          { href: "/products/categories", label: "Categories" },
+        ]}
         actions={
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline">

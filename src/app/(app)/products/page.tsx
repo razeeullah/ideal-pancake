@@ -117,6 +117,13 @@ export default async function ProductsPage({
       <PageTitle
         title="Products"
         description={`Manage your catalog and stock availability at ${location.name}.`}
+        tabs={[
+          { href: "/products", label: "All Products", active: true },
+          { href: "/inventory", label: "Stock" },
+          { href: "/inventory/low-stock", label: "Low Stock" },
+          { href: "/inventory/adjustments", label: "Adjustments" },
+          { href: "/products/categories", label: "Categories" },
+        ]}
         actions={
           <div className="flex flex-wrap gap-2">
             {canManageReferences ? (

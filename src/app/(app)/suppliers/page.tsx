@@ -48,6 +48,10 @@ export default async function SuppliersPage({
       <PageTitle
         title="Suppliers"
         description="Supplier contacts, purchase activity, and payable balances."
+        tabs={[
+          { href: "/purchases", label: "Orders" },
+          { href: "/suppliers", label: "Suppliers", active: true },
+        ]}
         actions={
           <Button asChild>
             <Link href="/suppliers/new">

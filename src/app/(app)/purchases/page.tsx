@@ -46,8 +46,12 @@ export default async function PurchasesPage({
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <PageTitle
-        title="Purchases"
+        title="Purchase Orders"
         description="Draft, order, receive, and pay supplier purchases."
+        tabs={[
+          { href: "/purchases", label: "Orders", active: true },
+          { href: "/suppliers", label: "Suppliers" },
+        ]}
         actions={
           context.permissions.has("purchase.create") ? (
             <Button asChild>

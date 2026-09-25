@@ -10,8 +10,13 @@ export default async function AuditLogsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageTitle
-        title="Audit logs"
+        title="Activity Log"
         description="Security-relevant, location-scoped activity. Sensitive values are redacted."
+        tabs={[
+          { href: "/users", label: "Members" },
+          { href: "/users/roles", label: "Roles & Permissions" },
+          { href: "/audit-logs", label: "Activity Log", active: true },
+        ]}
       />
       <div className="rounded-lg border">
         <table className="w-full text-sm">

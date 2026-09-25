@@ -55,6 +55,13 @@ export default async function LowStockPage({
       <PageTitle
         title="Low-stock report"
         description={`Variants at or below their minimum quantity in ${location.name}.`}
+        tabs={[
+          { href: "/products", label: "All Products" },
+          { href: "/inventory", label: "Stock" },
+          { href: "/inventory/low-stock", label: "Low Stock", active: true },
+          { href: "/inventory/adjustments", label: "Adjustments" },
+          { href: "/products/categories", label: "Categories" },
+        ]}
         actions={
           <Button asChild variant="outline">
             <Link href="/inventory">Current inventory</Link>

@@ -14,6 +14,13 @@ export default async function CategoriesPage() {
       <PageTitle
         title="Categories"
         description="Manage business-scoped product categories."
+        tabs={[
+          { href: "/products", label: "All Products" },
+          { href: "/inventory", label: "Stock" },
+          { href: "/inventory/low-stock", label: "Low Stock" },
+          { href: "/inventory/adjustments", label: "Adjustments" },
+          { href: "/products/categories", label: "Categories", active: true },
+        ]}
         actions={<ReferenceNavigation current="categories" />}
       />
       <ReferenceManager

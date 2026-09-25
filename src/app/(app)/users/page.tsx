@@ -74,8 +74,13 @@ export default async function UsersPage({
   return (
     <div className="mx-auto max-w-[1600px] space-y-5">
       <PageTitle
-        title="Users"
+        title="Team Members"
         description="Manage staff access, role assignments, locations, and account status."
+        tabs={[
+          { href: "/users", label: "Members", active: true },
+          { href: "/users/roles", label: "Roles & Permissions" },
+          { href: "/audit-logs", label: "Activity Log" },
+        ]}
         actions={
           canManage ? (
             <div className="flex gap-2">
