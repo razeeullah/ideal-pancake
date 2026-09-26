@@ -1,22 +1,17 @@
-import { LockKeyhole, ShieldCheck, Store } from "lucide-react";
+import { LockKeyhole, Store } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { LoginForm } from "@/features/auth/login-form";
+import { AuthCard } from "@/features/auth/auth-card";
 import { getAuthContext } from "@/features/auth/session";
 
-export const metadata: Metadata = { title: "Sign in" };
+export const metadata: Metadata = { title: "Sign in & Registration" };
 
 interface LoginPageProps {
-  searchParams: Promise<{ returnTo?: string | string[] }>;
+  searchParams: Promise<{
+    returnTo?: string | string[];
+    tab?: string | string[];
+  }>;
 }
 
 function safeReturnPath(value: string | string[] | undefined): string {
@@ -32,6 +27,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     redirect("/dashboard");
   }
 
+  const initialTab =
+    (Array.isArray(query.tab) ? query.tab[0] : query.tab) === "register"
+      ? "register"
+      : "login";
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-center gap-3">
@@ -46,23 +46,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </div>
       </div>
 
-      <Card className="border-border/80 shadow-2xl shadow-black/20">
-        <CardHeader className="space-y-3 text-center">
-          <div className="flex justify-center">
-            <Badge variant="secondary" className="gap-1.5">
-              <ShieldCheck className="size-3.5" aria-hidden="true" />
-              Protected access
-            </Badge>
-          </div>
-          <CardTitle className="text-2xl">Welcome back</CardTitle>
-          <CardDescription>
-            Sign in with your staff email or username to continue.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <LoginForm returnTo={safeReturnPath(query.returnTo)} />
-        </CardContent>
-      </Card>
+      <AuthCard
+        returnTo={safeReturnPath(query.returnTo)}
+        initialMode={initialTab}
+      />
 
       <p className="text-muted-foreground flex items-center justify-center gap-2 text-center text-xs">
         <LockKeyhole className="size-3.5" aria-hidden="true" />

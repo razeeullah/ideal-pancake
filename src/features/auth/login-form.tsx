@@ -19,9 +19,10 @@ import {
 
 interface LoginFormProps {
   returnTo: string;
+  onSwitchToRegister?: () => void;
 }
 
-export function LoginForm({ returnTo }: LoginFormProps) {
+export function LoginForm({ returnTo, onSwitchToRegister }: LoginFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -161,6 +162,19 @@ export function LoginForm({ returnTo }: LoginFormProps) {
         {isPending ? <Loader2 className="animate-spin" /> : <LogIn />}
         {isPending ? "Signing in…" : "Sign in securely"}
       </Button>
+
+      {onSwitchToRegister !== undefined ? (
+        <div className="text-center pt-1 text-sm text-muted-foreground">
+          Don&apos;t have an account?{" "}
+          <button
+            type="button"
+            onClick={onSwitchToRegister}
+            className="text-primary font-semibold hover:underline cursor-pointer"
+          >
+            Create account
+          </button>
+        </div>
+      ) : null}
     </form>
   );
 }

@@ -86,3 +86,72 @@ export type ChangePasswordActionResult =
         >
       >;
     };
+
+export const registerSchema = z
+  .object({
+    displayName: z
+      .string()
+      .trim()
+      .min(2, "Name must be at least 2 characters")
+      .max(160, "Name must be at most 160 characters"),
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .max(254)
+      .refine(
+        (value) => z.email().safeParse(value).success,
+        "Enter a valid email address",
+      ),
+    username: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .min(3, "Username must be at least 3 characters")
+      .max(64, "Username must be at most 64 characters")
+      .refine(
+        (value) => /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/.test(value),
+        "Username may only contain letters, numbers, dots, hyphens, or underscores",
+      ),
+    roleCode: z
+      .enum(["OWNER", "MANAGER", "CASHIER"])
+      .default("OWNER"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(128, "Password must be at most 128 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .superRefine((value, context) => {
+    if (value.password !== value.confirmPassword) {
+      context.addIssue({
+        code: "custom",
+        path: ["confirmPassword"],
+        message: "Passwords do not match",
+      });
+    }
+  });
+
+export type RegisterFormInput = z.input<typeof registerSchema>;
+export type RegisterInput = z.output<typeof registerSchema>;
+
+export type RegisterActionResult =
+  | { success: true; redirectUrl: string }
+  | {
+      success: false;
+      message: string;
+      fieldErrors?: Readonly<
+        Partial<
+          Record<
+            | "displayName"
+            | "email"
+            | "username"
+            | "roleCode"
+            | "password"
+            | "confirmPassword",
+            string[]
+          >
+        >
+      >;
+    };
+
