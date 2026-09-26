@@ -3,6 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  compress: true,
+  images: {
+    formats: ["image/avif", "image/webp"],
+  },
   output: process.env.VERCEL ? undefined : "standalone",
   async headers() {
     const scriptSource =
