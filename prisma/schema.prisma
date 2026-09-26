@@ -579,6 +579,7 @@ model Product {
   @@unique([businessId, sku])
   @@index([businessId, isActive])
   @@index([businessId, archivedAt])
+  @@index([businessId, isActive, archivedAt])
   @@index([businessId, name])
   @@index([categoryId])
   @@index([brandId])
@@ -615,6 +616,8 @@ model ProductVariant {
 
   @@unique([businessId, sku])
   @@index([productId, isActive])
+  @@index([businessId, isActive, archivedAt])
+  @@index([businessId, productId])
   @@map("product_variants")
 }
 

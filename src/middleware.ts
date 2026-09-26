@@ -1,43 +1,48 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
-  const supabaseUrl =
-    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-  const supabaseKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.SUPABASE_PUBLISHABLE_KEY
+const SESSION_COOKIE_NAMES = ["pos_session", "__Host-pos_session"] as const;
 
-  // Skip Supabase token refresh when credentials are not configured (local dev).
-  if (!supabaseUrl || !supabaseKey) {
-    return NextResponse.next({ request })
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Static assets and internal routes are excluded by matcher, but guard here too
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.includes(".")
+  ) {
+    return NextResponse.next();
   }
 
-  let supabaseResponse = NextResponse.next({ request })
+  const hasSessionCookie = SESSION_COOKIE_NAMES.some((name) =>
+    request.cookies.has(name),
+  );
 
-  const supabase = createServerClient(supabaseUrl, supabaseKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll()
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value),
-        )
-        supabaseResponse = NextResponse.next({ request })
-        cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options),
-        )
-      },
-    },
-  })
+  // Unauthenticated user attempting to access protected app routes
+  const isAuthRoute = pathname === "/login" || pathname === "/register";
+  if (!hasSessionCookie && !isAuthRoute && pathname !== "/") {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("returnTo", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
 
-  // Triggers refresh-token rotation and writes the new cookies via setAll.
-  await supabase.auth.getUser()
+  // Already authenticated user visiting login page
+  if (hasSessionCookie && isAuthRoute) {
+    return NextResponse.redirect(new URL("/home", request.url));
+  }
 
-  return supabaseResponse
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
-}
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public files with extensions
+     */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
+};

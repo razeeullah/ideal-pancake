@@ -171,6 +171,35 @@ export async function listProducts(
   };
 }
 
+export async function getProductMetrics(
+  businessId: string,
+  locationId: string,
+) {
+  const [totalCatalog, activeCount, lowStockRows] = await Promise.all([
+    db.product.count({ where: { businessId } }),
+    db.product.count({
+      where: { businessId, isActive: true, archivedAt: null },
+    }),
+    db.$queryRaw<[{ count: bigint }]>`
+      SELECT COUNT(DISTINCT p.id)::bigint AS count
+      FROM products p
+      INNER JOIN product_variants pv ON pv."productId" = p.id AND pv."archivedAt" IS NULL
+      LEFT JOIN inventory_balances ib ON ib."productVariantId" = pv.id AND ib."locationId" = ${locationId}::uuid
+      WHERE p."businessId" = ${businessId}::uuid
+        AND p."isActive" = true
+        AND p."archivedAt" IS NULL
+        AND p."trackInventory" = true
+        AND COALESCE(ib.quantity, 0) <= pv."minimumStock"
+    `.catch(() => [{ count: 0n }]),
+  ]);
+
+  return {
+    totalCatalog,
+    activeCount,
+    lowStockCount: Number(lowStockRows[0]?.count ?? 0n),
+  };
+}
+
 export async function getCatalogOptions(businessId: string) {
   return withCache(
     async () => {

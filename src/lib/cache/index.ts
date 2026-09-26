@@ -31,4 +31,7 @@ export const CacheTags = {
   dashboard: (businessId: string) => `dashboard-${businessId}`,
   customers: (businessId: string) => `customers-${businessId}`,
   suppliers: (businessId: string) => `suppliers-${businessId}`,
+  settings: (businessId: string) => `settings-${businessId}`,
+  inventory: (businessId: string) => `inventory-${businessId}`,
 };
+

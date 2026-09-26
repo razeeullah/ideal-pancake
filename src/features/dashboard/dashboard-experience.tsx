@@ -1,20 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import {
   Bell,
   Boxes,
@@ -42,18 +30,66 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DASHBOARD_BRANCHES, DASHBOARD_NOTIFICATIONS, DATE_RANGES, LOW_STOCK_PRODUCTS, RECENT_ORDERS, REVENUE_DATA, SALES_TREND_DATA, TOP_SELLING_PRODUCTS, getMetrics } from "@/features/dashboard/mock-data";
+import { DASHBOARD_BRANCHES, DASHBOARD_NOTIFICATIONS, DATE_RANGES, LOW_STOCK_PRODUCTS, RECENT_ORDERS, TOP_SELLING_PRODUCTS, getMetrics } from "@/features/dashboard/mock-data";
 import type { DashboardBranchId, DashboardDateRange, DashboardMetric, DashboardNotification, RevenuePeriod, SalesPeriod } from "@/features/dashboard/types";
 
 const inr = (minor: number) => new Intl.NumberFormat("en-PK", { style: "currency", currency: "PKR", currencyDisplay: "narrowSymbol", maximumFractionDigits: 2 }).format(minor / 100);
 const number = (value: number) => new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(value);
-const abbreviated = (value: number) => value === 0 ? "0" : `${Math.round(value / 1000)}K`;
 const accent = {
   blue: { text: "text-blue-600", bg: "bg-blue-50", stroke: "#2563eb" },
   green: { text: "text-emerald-600", bg: "bg-emerald-50", stroke: "#10b981" },
   orange: { text: "text-orange-600", bg: "bg-orange-50", stroke: "#f97316" },
   purple: { text: "text-violet-600", bg: "bg-violet-50", stroke: "#8b5cf6" },
 } as const;
+
+const RevenueBarChart = dynamic(
+  () => import("./dashboard-charts").then((mod) => mod.RevenueBarChart),
+  {
+    ssr: false,
+    loading: () => <div className="h-64 w-full animate-pulse rounded-lg bg-muted/40" />,
+  },
+);
+
+const SalesTrendLineChart = dynamic(
+  () => import("./dashboard-charts").then((mod) => mod.SalesTrendLineChart),
+  {
+    ssr: false,
+    loading: () => <div className="h-64 w-full animate-pulse rounded-lg bg-muted/40" />,
+  },
+);
+
+function SparklineSvg({
+  data,
+  stroke,
+}: Readonly<{ data: readonly number[]; stroke: string }>) {
+  if (!data.length) return null;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const width = 80;
+  const height = 48;
+  const padding = 4;
+  const points = data
+    .map((val, idx) => {
+      const x = (idx / (data.length - 1)) * width;
+      const y = height - padding - ((val - min) / range) * (height - padding * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="h-12 w-20 overflow-visible" aria-hidden="true">
+      <polyline
+        fill="none"
+        stroke={stroke}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        points={points}
+      />
+    </svg>
+  );
+}
 
 function DashboardMenu({ children }: Readonly<{ children: React.ReactNode }>) { return <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-72 rounded-xl border bg-card p-2 shadow-xl">{children}</div>; }
 function Tile({ imageClass }: Readonly<{ imageClass: string }>) { return <span aria-hidden="true" className={`${imageClass} block size-9 shrink-0 rounded-md border border-black/5`} />; }
@@ -63,7 +99,7 @@ function MetricCard({ metric }: Readonly<{ metric: DashboardMetric }>) {
   const Icon = metric.id === "sales" ? ShoppingBag : metric.id === "profit" ? WalletCards : metric.id === "orders" ? ClipboardList : Boxes;
   const color = accent[metric.accent];
   const Trend = metric.trend === "up" ? TrendingUp : TrendingDown;
-  return <article className="rounded-xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><div className="flex items-start gap-3"><span className={`${color.bg} ${color.text} grid size-11 place-items-center rounded-xl`}><Icon className="size-5" /></span><div className="min-w-0 flex-1"><p className="text-xs font-medium text-muted-foreground">{metric.title}</p><p className="mt-1 text-xl font-bold tracking-tight">{metric.id === "orders" ? number(metric.value) : inr(metric.value)}</p><p className={`mt-1 flex items-center gap-1 text-[11px] font-medium ${metric.trend === "up" ? "text-emerald-600" : "text-orange-600"}`}><Trend className="size-3" />{metric.changePercentage}% <span className="font-normal text-muted-foreground">{metric.comparisonText}</span></p></div><div className="h-12 w-20"><ResponsiveContainer><AreaChart data={metric.sparklineData.map((value, index) => ({ index, value }))}><Area type="monotone" dataKey="value" stroke={color.stroke} strokeWidth={2} fill="none" isAnimationActive={false} /></AreaChart></ResponsiveContainer></div></div></article>;
+  return <article className="rounded-xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><div className="flex items-start gap-3"><span className={`${color.bg} ${color.text} grid size-11 place-items-center rounded-xl`}><Icon className="size-5" /></span><div className="min-w-0 flex-1"><p className="text-xs font-medium text-muted-foreground">{metric.title}</p><p className="mt-1 text-xl font-bold tracking-tight">{metric.id === "orders" ? number(metric.value) : inr(metric.value)}</p><p className={`mt-1 flex items-center gap-1 text-[11px] font-medium ${metric.trend === "up" ? "text-emerald-600" : "text-orange-600"}`}><Trend className="size-3" />{metric.changePercentage}% <span className="font-normal text-muted-foreground">{metric.comparisonText}</span></p></div><div className="h-12 w-20"><SparklineSvg data={metric.sparklineData} stroke={color.stroke} /></div></div></article>;
 }
 
 function StatusBadge({ status }: Readonly<{ status: string }>) { const classes: Record<string, string> = { Pending: "bg-orange-50 text-orange-700", Confirmed: "bg-emerald-50 text-emerald-700", Processing: "bg-blue-50 text-blue-700", Delivered: "bg-emerald-50 text-emerald-700", Cancelled: "bg-rose-50 text-rose-700", Low: "bg-orange-50 text-orange-700", Critical: "bg-rose-50 text-rose-700" }; return <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${classes[status] ?? "bg-muted text-muted-foreground"}`}>{status}</span>; }
@@ -102,8 +138,75 @@ export function DashboardExperience() {
   </div>;
 }
 
-function RevenueOverview({ period, setPeriod }: Readonly<{ period: RevenuePeriod; setPeriod: (value: RevenuePeriod) => void }>) { return <Panel title="Revenue Overview" description="Comparison of total sales revenue and product cost for the selected period." action={<select aria-label="Revenue overview period" value={period} onChange={(event) => setPeriod(event.target.value as RevenuePeriod)} className="h-8 rounded-md border bg-background px-2 text-xs"><option>Daily</option><option>Weekly</option><option>Monthly</option><option>Quarterly</option><option>Yearly</option></select>}><div className="mb-2 flex gap-4 text-[11px]"><span className="flex items-center gap-1"><i className="size-2 rounded-full bg-blue-600" /> Revenue (PKR)</span><span className="flex items-center gap-1"><i className="size-2 rounded-full bg-blue-200" /> Cost (PKR)</span></div><div className="h-64" aria-label="Revenue and cost bar chart"><ResponsiveContainer><BarChart data={REVENUE_DATA} margin={{ left: -18, right: 8, top: 8, bottom: 0 }}><CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e2e8f0" /><XAxis dataKey="date" tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} /><YAxis tickFormatter={abbreviated} tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} /><Tooltip formatter={(value) => inr(Number(value) * 100)} cursor={{ fill: "#f8fafc" }} /><Bar dataKey="revenue" fill="#2563eb" radius={[4, 4, 0, 0]} /><Bar dataKey="cost" fill="#bfdbfe" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></div></Panel>; }
-function SalesTrend({ period, setPeriod }: Readonly<{ period: SalesPeriod; setPeriod: (value: SalesPeriod) => void }>) { return <Panel title="Sales Trend" description="Tracks total sales value and number of completed orders over time." action={<select aria-label="Sales trend period" value={period} onChange={(event) => setPeriod(event.target.value as SalesPeriod)} className="h-8 rounded-md border bg-background px-2 text-xs"><option>Today</option><option>This Week</option><option>Last Week</option><option>This Month</option><option>Last Month</option></select>}><div className="mb-2 flex gap-4 text-[11px]"><span className="flex items-center gap-1"><i className="size-2 rounded-full bg-blue-600" /> Sales (PKR)</span><span className="flex items-center gap-1"><i className="size-2 rounded-full bg-blue-300" /> Orders</span></div><div className="h-64" aria-label="Sales and orders line chart"><ResponsiveContainer><LineChart data={SALES_TREND_DATA} margin={{ left: -18, right: -8, top: 8, bottom: 0 }}><CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e2e8f0" /><XAxis dataKey="date" tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} /><YAxis yAxisId="sales" tickFormatter={abbreviated} tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} /><YAxis yAxisId="orders" orientation="right" domain={[0, 50]} tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} /><Tooltip formatter={(value, key) => key === "sales" ? inr(Number(value) * 100) : Number(value)} /><Line yAxisId="sales" type="monotone" dataKey="sales" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 3 }} /><Line yAxisId="orders" type="monotone" dataKey="orders" stroke="#93c5fd" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 2 }} /></LineChart></ResponsiveContainer></div></Panel>; }
+function RevenueOverview({ period, setPeriod }: Readonly<{ period: RevenuePeriod; setPeriod: (value: RevenuePeriod) => void }>) {
+  return (
+    <Panel
+      title="Revenue Overview"
+      description="Comparison of total sales revenue and product cost for the selected period."
+      action={
+        <select
+          aria-label="Revenue overview period"
+          value={period}
+          onChange={(event) => setPeriod(event.target.value as RevenuePeriod)}
+          className="h-8 rounded-md border bg-background px-2 text-xs"
+        >
+          <option>Daily</option>
+          <option>Weekly</option>
+          <option>Monthly</option>
+          <option>Quarterly</option>
+          <option>Yearly</option>
+        </select>
+      }
+    >
+      <div className="mb-2 flex gap-4 text-[11px]">
+        <span className="flex items-center gap-1">
+          <i className="size-2 rounded-full bg-blue-600" /> Revenue (PKR)
+        </span>
+        <span className="flex items-center gap-1">
+          <i className="size-2 rounded-full bg-blue-200" /> Cost (PKR)
+        </span>
+      </div>
+      <div className="h-64" aria-label="Revenue and cost bar chart">
+        <RevenueBarChart />
+      </div>
+    </Panel>
+  );
+}
+
+function SalesTrend({ period, setPeriod }: Readonly<{ period: SalesPeriod; setPeriod: (value: SalesPeriod) => void }>) {
+  return (
+    <Panel
+      title="Sales Trend"
+      description="Tracks total sales value and number of completed orders over time."
+      action={
+        <select
+          aria-label="Sales trend period"
+          value={period}
+          onChange={(event) => setPeriod(event.target.value as SalesPeriod)}
+          className="h-8 rounded-md border bg-background px-2 text-xs"
+        >
+          <option>Today</option>
+          <option>This Week</option>
+          <option>Last Week</option>
+          <option>This Month</option>
+          <option>Last Month</option>
+        </select>
+      }
+    >
+      <div className="mb-2 flex gap-4 text-[11px]">
+        <span className="flex items-center gap-1">
+          <i className="size-2 rounded-full bg-blue-600" /> Sales (PKR)
+        </span>
+        <span className="flex items-center gap-1">
+          <i className="size-2 rounded-full bg-blue-300" /> Orders
+        </span>
+      </div>
+      <div className="h-64" aria-label="Sales and orders line chart">
+        <SalesTrendLineChart />
+      </div>
+    </Panel>
+  );
+}
 function TopSelling() { return <Panel title="Top Selling Tiles" description="Best-selling products for the selected period." action={<Link href="/products" className="text-xs font-semibold text-primary">View All</Link>}><p className="mb-2 text-right text-[10px] text-muted-foreground">Sold (Sq.Ft)</p><div className="space-y-1">{TOP_SELLING_PRODUCTS.map((item) => <Link key={item.id} href={`/products/${item.id}`} className="flex gap-2 rounded-lg p-1.5 hover:bg-muted"><Tile imageClass={item.imageClass} /><span className="min-w-0 flex-1"><b className="block truncate text-xs">{item.name}</b><span className="block text-[10px] text-muted-foreground">{item.finish}</span></span><span className="text-right text-[10px]"><b className="block">{number(item.soldSqFt)}</b><span className="font-medium text-emerald-600">{inr(item.salesAmount)}</span></span></Link>)}</div></Panel>; }
 function RecentOrders() { return <Panel title="Recent Orders" action={<Link href="/sales/orders" className="text-xs font-semibold text-primary">View All</Link>}><div className="grid grid-cols-[1fr_1.2fr_.9fr_auto] gap-2 border-b pb-2 text-[10px] text-muted-foreground"><span>Order</span><span>Customer</span><span>Amount</span><span>Status</span></div><div className="divide-y">{RECENT_ORDERS.map((order) => <Link key={order.id} href={`/sales/orders/${order.id}`} className="grid grid-cols-[1fr_1.2fr_.9fr_auto] gap-2 py-2 text-[10px] hover:bg-muted"><span><b className="block text-primary">{order.orderNumber}</b><small className="text-muted-foreground">{order.date}</small></span><span className="truncate">{order.customerName}</span><span className="font-medium">{inr(order.amount)}</span><StatusBadge status={order.status} /></Link>)}</div></Panel>; }
 function LowStock() { return <Panel title="Low Stock" action={<Link href="/inventory?filter=low-stock" className="text-xs font-semibold text-primary">View All</Link>}><div className="grid grid-cols-[1fr_auto_auto] gap-2 border-b pb-2 text-[10px] text-muted-foreground"><span>Product</span><span>Stock</span><span>Status</span></div><div className="divide-y">{LOW_STOCK_PRODUCTS.map((item) => <Link key={item.id} href={`/products/${item.id}`} className="grid grid-cols-[1fr_auto_auto] items-center gap-2 py-2 hover:bg-muted"><span className="flex min-w-0 items-center gap-2"><Tile imageClass={item.imageClass} /><span className="min-w-0"><b className="block truncate text-[10px]">{item.name}</b><small className="block truncate text-[9px] text-muted-foreground">{item.finish}</small></span></span><span className="text-[10px] font-medium">{number(item.stockSqFt)}</span><StatusBadge status={item.status} /></Link>)}</div></Panel>; }

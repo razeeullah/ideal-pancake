@@ -218,10 +218,12 @@ export async function resolveSessionToken(
     null;
 
   if (now.getTime() - session.lastSeenAt.getTime() >= 5 * 60 * 1000) {
-    await db.session.update({
-      where: { id: session.id },
-      data: { lastSeenAt: now },
-    });
+    void db.session
+      .update({
+        where: { id: session.id },
+        data: { lastSeenAt: now },
+      })
+      .catch(() => {});
   }
 
   return {

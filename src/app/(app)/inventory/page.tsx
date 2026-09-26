@@ -21,7 +21,8 @@ import {
 } from "@/features/auth/session";
 import {
   getInventoryValuation,
-  getInventoryOptions,
+  getInventoryFilterOptions,
+  getLowStockCount,
   listInventory,
 } from "@/features/inventory/queries";
 import { formatKarachiDateTime } from "@/lib/dates";
@@ -53,7 +54,7 @@ export default async function InventoryPage({
         />
       </div>
     );
-  const [{ items, query, pagination }, options, valuation, lowStock] =
+  const [{ items, query, pagination }, options, valuation, lowStockCount] =
     await Promise.all([
       listInventory(context.business.id, location.id, {
         search: single(raw.search),
@@ -61,16 +62,12 @@ export default async function InventoryPage({
         stockStatus: single(raw.stockStatus),
         page: single(raw.page),
       }),
-      getInventoryOptions(
+      getInventoryFilterOptions(
         context.business.id,
         context.locations.map(({ id }) => id),
       ),
       getInventoryValuation(context.business.id, location.id),
-      listInventory(context.business.id, location.id, {
-        stockStatus: "low_stock",
-        page: "1",
-        pageSize: "1",
-      }),
+      getLowStockCount(context.business.id, location.id),
     ]);
   const canAdjust = context.permissions.has("inventory.adjust");
   const stockStatus = (item: (typeof items)[number]) => {
@@ -135,7 +132,7 @@ export default async function InventoryPage({
         />
         <InventoryMetric
           label="Low-stock items"
-          value={lowStock.pagination.totalItems.toLocaleString("en-PK")}
+          value={lowStockCount.toLocaleString("en-PK")}
           detail="Need replenishment attention"
           icon={<TriangleAlert className="size-6" />}
           tone="orange"

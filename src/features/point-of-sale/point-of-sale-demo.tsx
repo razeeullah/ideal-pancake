@@ -199,21 +199,34 @@ export function PointOfSaleDemo() {
     return () => window.cancelAnimationFrame(restoreFrame);
   }, []);
 
+  const handlersRef = useRef<{
+    cart: CartItem[];
+    startNewSale: () => void;
+    completeSale: () => void;
+  }>({
+    cart: [],
+    startNewSale: () => {},
+    completeSale: () => {},
+  });
+
   useEffect(() => {
     if (!hydrated) return;
-    window.localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        cart,
-        heldInvoices,
-        customers,
-        selectedCustomerId,
-        viewMode,
-      }),
-    );
+    const timer = window.setTimeout(() => {
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          cart,
+          heldInvoices,
+          customers,
+          selectedCustomerId,
+          viewMode,
+        }),
+      );
+    }, 250);
+    return () => window.clearTimeout(timer);
   }, [cart, customers, heldInvoices, hydrated, selectedCustomerId, viewMode]);
 
-  // Global Keyboard Shortcuts
+  // Global Keyboard Shortcuts (mounted once to avoid event listener churn)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Focus Search: / or F2 or Ctrl+K / Cmd+K
@@ -230,13 +243,13 @@ export function PointOfSaleDemo() {
       // F4: New Sale
       if (event.key === "F4") {
         event.preventDefault();
-        startNewSale();
+        handlersRef.current.startNewSale();
         return;
       }
       // F8: Hold Sale
       if (event.key === "F8") {
         event.preventDefault();
-        if (cart.length > 0) {
+        if (handlersRef.current.cart.length > 0) {
           setDialog("hold");
         } else {
           toast.info("Cart is already empty.");
@@ -246,8 +259,8 @@ export function PointOfSaleDemo() {
       // F9: Complete Sale
       if (event.key === "F9") {
         event.preventDefault();
-        if (cart.length > 0) {
-          completeSale();
+        if (handlersRef.current.cart.length > 0) {
+          handlersRef.current.completeSale();
         }
         return;
       }
@@ -261,7 +274,7 @@ export function PointOfSaleDemo() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  });
+  }, []);
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -443,6 +456,14 @@ export function PointOfSaleDemo() {
     setDialog(null);
     searchRef.current?.focus();
   }
+
+  useEffect(() => {
+    handlersRef.current = {
+      cart,
+      startNewSale,
+      completeSale,
+    };
+  });
 
   const whatsAppUrl = `https://wa.me/${selectedCustomer.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
     `Hello ${selectedCustomer.name}, thank you for shopping at Friends Distributors. Your invoice #${

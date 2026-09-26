@@ -4,13 +4,15 @@ import { getExpenseData, profitSummary } from "@/features/expenses/queries";
 import { formatMoney, parseMoneyToMinor } from "@/lib/money";
 export default async function ExpensesPage() {
   const context = await requirePermission("expense.view");
-  const data = await getExpenseData(
-    context.business.id,
-    context.locations.map((location) => location.id),
-  );
-  const profit = context.permissions.has("report.profit")
-    ? await profitSummary(context.business.id)
-    : null;
+  const [data, profit] = await Promise.all([
+    getExpenseData(
+      context.business.id,
+      context.locations.map((location) => location.id),
+    ),
+    context.permissions.has("report.profit")
+      ? profitSummary(context.business.id)
+      : Promise.resolve(null),
+  ]);
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageTitle

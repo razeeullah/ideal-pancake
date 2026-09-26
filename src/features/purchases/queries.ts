@@ -230,11 +230,11 @@ export async function listPurchases(
   };
 }
 
-export async function getPurchaseOptions(
+export async function getPurchaseFilterOptions(
   businessId: string,
   locationIds: readonly string[],
 ) {
-  const [suppliers, locations, variants] = await Promise.all([
+  const [suppliers, locations] = await Promise.all([
     db.supplier.findMany({
       where: { businessId, archivedAt: null, isActive: true },
       orderBy: { name: "asc" },
@@ -250,6 +250,16 @@ export async function getPurchaseOptions(
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
+  ]);
+  return { suppliers, locations };
+}
+
+export async function getPurchaseOptions(
+  businessId: string,
+  locationIds: readonly string[],
+) {
+  const [{ suppliers, locations }, variants] = await Promise.all([
+    getPurchaseFilterOptions(businessId, locationIds),
     db.productVariant.findMany({
       where: {
         businessId,

@@ -23,7 +23,11 @@ import {
   requireLocationAccess,
   requirePermission,
 } from "@/features/auth/session";
-import { getCatalogOptions, listProducts } from "@/features/products/queries";
+import {
+  getCatalogOptions,
+  getProductMetrics,
+  listProducts,
+} from "@/features/products/queries";
 import { formatMoney, parseMoneyToMinor } from "@/lib/money";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -80,36 +84,20 @@ export default async function ProductsPage({
     );
   }
 
-  const [{ items, query, pagination }, options, catalog, active, lowStock] =
-    await Promise.all([
-      listProducts(context.business.id, location.id, {
-        search: single(raw.search),
-        categoryId: single(raw.categoryId),
-        brandId: single(raw.brandId),
-        status: single(raw.status),
-        lowStock: single(raw.lowStock),
-        sort: single(raw.sort),
-        page: single(raw.page),
-        pageSize: single(raw.pageSize),
-      }),
-      getCatalogOptions(context.business.id),
-      listProducts(context.business.id, location.id, {
-        status: "all",
-        page: "1",
-        pageSize: "1",
-      }),
-      listProducts(context.business.id, location.id, {
-        status: "active",
-        page: "1",
-        pageSize: "1",
-      }),
-      listProducts(context.business.id, location.id, {
-        status: "active",
-        lowStock: "true",
-        page: "1",
-        pageSize: "1",
-      }),
-    ]);
+  const [{ items, query, pagination }, options, metrics] = await Promise.all([
+    listProducts(context.business.id, location.id, {
+      search: single(raw.search),
+      categoryId: single(raw.categoryId),
+      brandId: single(raw.brandId),
+      status: single(raw.status),
+      lowStock: single(raw.lowStock),
+      sort: single(raw.sort),
+      page: single(raw.page),
+      pageSize: single(raw.pageSize),
+    }),
+    getCatalogOptions(context.business.id),
+    getProductMetrics(context.business.id, location.id),
+  ]);
   const canUpdate = context.permissions.has("product.update");
 
   return (
@@ -148,21 +136,21 @@ export default async function ProductsPage({
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <ProductMetric
           label="Total catalog items"
-          value={catalog.pagination.totalItems.toLocaleString("en-PK")}
+          value={metrics.totalCatalog.toLocaleString("en-PK")}
           detail="Including active and archived products"
           icon={<Boxes className="size-6" />}
           tone="blue"
         />
         <ProductMetric
           label="Active products"
-          value={active.pagination.totalItems.toLocaleString("en-PK")}
+          value={metrics.activeCount.toLocaleString("en-PK")}
           detail="Available to sell"
           icon={<PackageCheck className="size-6" />}
           tone="green"
         />
         <ProductMetric
           label="Low-stock products"
-          value={lowStock.pagination.totalItems.toLocaleString("en-PK")}
+          value={metrics.lowStockCount.toLocaleString("en-PK")}
           detail="Need replenishment attention"
           icon={<TriangleAlert className="size-6" />}
           tone="orange"

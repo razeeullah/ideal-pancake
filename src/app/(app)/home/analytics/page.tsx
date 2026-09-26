@@ -1,18 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import dynamic from "next/dynamic";
 import {
   ArrowUpRight,
   DollarSign,
@@ -23,6 +12,28 @@ import {
 } from "lucide-react";
 
 import { PageTitle } from "@/components/layout/page-title";
+
+const RevenueBarChartSection = dynamic(
+  () =>
+    import("./analytics-charts").then((mod) => mod.RevenueBarChartSection),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-72 w-full animate-pulse rounded-lg bg-muted/40" />
+    ),
+  },
+);
+
+const CategoryPieChartSection = dynamic(
+  () =>
+    import("./analytics-charts").then((mod) => mod.CategoryPieChartSection),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-56 w-full animate-pulse rounded-lg bg-muted/40" />
+    ),
+  },
+);
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -163,23 +174,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="h-72 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={formattedRevenue}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                  <XAxis dataKey="date" tickLine={false} axisLine={false} />
-                  <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(v: number) => `${Math.round(v / 1000)}k`}
-                  />
-                  <Tooltip
-                    formatter={(v: unknown) => [`Rs. ${Number(v).toLocaleString()}`, ""]}
-                    contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0" }}
-                  />
-                  <Bar dataKey="revenue" name="Revenue" fill="#2563eb" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="cost" name="Cost" fill="#94a3b8" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <RevenueBarChartSection data={formattedRevenue} />
             </div>
           </CardContent>
         </Card>
@@ -192,23 +187,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="h-56 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={CATEGORY_SHARE}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={3}
-                  >
-                    {CATEGORY_SHARE.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(v: unknown) => [`${String(v)}%`, "Share"]} />
-                </PieChart>
-              </ResponsiveContainer>
+              <CategoryPieChartSection data={CATEGORY_SHARE} />
             </div>
             <div className="mt-2 space-y-2">
               {CATEGORY_SHARE.map((cat) => (

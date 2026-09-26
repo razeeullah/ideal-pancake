@@ -11,7 +11,7 @@ import {
   requirePermission,
 } from "@/features/auth/session";
 import {
-  getPurchaseOptions,
+  getPurchaseFilterOptions,
   listPurchases,
 } from "@/features/purchases/queries";
 import { PurchaseStatus } from "@/generated/prisma/enums";
@@ -41,7 +41,7 @@ export default async function PurchasesPage({
       locationId,
       page: single(raw.page),
     }),
-    getPurchaseOptions(context.business.id, locationIds),
+    getPurchaseFilterOptions(context.business.id, locationIds),
   ]);
   return (
     <div className="mx-auto max-w-7xl space-y-6">

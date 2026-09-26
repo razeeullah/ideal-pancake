@@ -62,6 +62,47 @@ function inventoryStatusFilter(
   return Prisma.sql`TRUE`;
 }
 
+export async function getInventoryFilterOptions(
+  businessId: string,
+  locationIds: readonly string[],
+) {
+  const [locations, categories] = await Promise.all([
+    db.location.findMany({
+      where: {
+        businessId,
+        id: { in: [...locationIds] },
+        isActive: true,
+        archivedAt: null,
+      },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+    db.category.findMany({
+      where: { businessId, isActive: true, archivedAt: null },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+  ]);
+  return { locations, categories };
+}
+
+export async function getLowStockCount(businessId: string, locationId: string) {
+  const result = await db.$queryRaw<[{ count: bigint }]>`
+    SELECT COUNT(DISTINCT pv.id)::bigint AS count
+    FROM product_variants pv
+    INNER JOIN products p ON p.id = pv."productId"
+    LEFT JOIN inventory_balances ib ON ib."productVariantId" = pv.id AND ib."locationId" = ${locationId}::uuid
+    WHERE pv."businessId" = ${businessId}::uuid
+      AND pv."isActive" = true
+      AND pv."archivedAt" IS NULL
+      AND p."isActive" = true
+      AND p."archivedAt" IS NULL
+      AND p."trackInventory" = true
+      AND COALESCE(ib.quantity, 0) <= pv."minimumStock"
+  `.catch(() => [{ count: 0n }]);
+  return Number(result[0]?.count ?? 0n);
+}
+
 export async function getInventoryOptions(
   businessId: string,
   locationIds: readonly string[],

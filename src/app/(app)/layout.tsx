@@ -1,6 +1,6 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { requireUser } from "@/features/auth/session";
-import { getBusinessSettings } from "@/features/settings/services";
+import { getThemeSettings } from "@/features/settings/services";
 import type { CSSProperties } from "react";
 
 const accentColors = {
@@ -16,12 +16,11 @@ export default async function ProtectedLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const context = await requireUser();
-  const data = await getBusinessSettings(context.business.id);
-  const pos = (data.settings.pos ?? {}) as Record<string, unknown>;
-  const theme = pos.themeMode === "dark" ? "dark" : "light";
+  const themeSettings = await getThemeSettings(context.business.id);
+  const theme = themeSettings.themeMode;
   const accent =
-    typeof pos.accentColor === "string" && pos.accentColor in accentColors
-      ? (pos.accentColor as keyof typeof accentColors)
+    themeSettings.accentColor in accentColors
+      ? (themeSettings.accentColor as keyof typeof accentColors)
       : "blue";
   return (
     <div
