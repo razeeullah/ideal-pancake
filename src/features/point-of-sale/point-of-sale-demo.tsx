@@ -5,8 +5,10 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import Link from "next/link";
 import {
   Banknote,
+  Boxes,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -36,7 +38,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { POS_CATEGORIES, POS_CUSTOMERS, POS_PRODUCTS } from "@/features/point-of-sale/mock-data";
+import { POS_CATEGORIES, POS_CUSTOMERS } from "@/features/point-of-sale/mock-data";
 import { formatDateTime, formatPkr, getCartTotals } from "@/features/point-of-sale/calculations";
 import type {
   CartItem,
@@ -131,22 +133,50 @@ function TileSurface({
   product,
   small = false,
 }: Readonly<{ product: PosProduct; small?: boolean }>) {
+  if (product.imageClass && product.imageClass.startsWith("tile-")) {
+    return (
+      <div
+        aria-hidden="true"
+        className={`${product.imageClass} relative overflow-hidden rounded-lg border border-black/10 ${
+          small ? "size-10 shrink-0" : "aspect-[1.25] w-full"
+        }`}
+      >
+        <span className="absolute inset-0 bg-white/5" />
+      </div>
+    );
+  }
   return (
     <div
       aria-hidden="true"
-      className={`${product.imageClass} relative overflow-hidden rounded-lg border border-black/10 ${
+      className={`relative flex items-center justify-center rounded-lg border bg-muted/40 text-muted-foreground ${
         small ? "size-10 shrink-0" : "aspect-[1.25] w-full"
       }`}
     >
-      <span className="absolute inset-0 bg-white/5" />
+      <Boxes className={small ? "size-5 opacity-60" : "size-8 opacity-60"} />
     </div>
   );
 }
 
-export function PointOfSaleDemo() {
+export function PointOfSaleDemo({
+  initialProducts = [],
+  initialCategories = [],
+  initialCustomers = [],
+}: {
+  initialProducts?: readonly PosProduct[];
+  initialCategories?: readonly string[];
+  initialCustomers?: readonly PosCustomer[];
+} = {}) {
   const searchRef = useRef<HTMLInputElement>(null);
-  const [products] = useState<readonly PosProduct[]>(POS_PRODUCTS);
-  const [customers, setCustomers] = useState<PosCustomer[]>(() => [...POS_CUSTOMERS]);
+  const [products] = useState<readonly PosProduct[]>(initialProducts);
+  const [customers, setCustomers] = useState<PosCustomer[]>(() =>
+    initialCustomers.length > 0 ? [...initialCustomers] : [...POS_CUSTOMERS],
+  );
+  const categories = useMemo(() => {
+    if (initialCategories.length > 0) {
+      return initialCategories;
+    }
+    return POS_CATEGORIES;
+  }, [initialCategories]);
   
   // Clean default: Empty cart!
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -600,7 +630,7 @@ export function PointOfSaleDemo() {
 
             {/* Quick Category Chips */}
             <div className="mt-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-              {POS_CATEGORIES.map((cat) => {
+              {categories.map((cat) => {
                 const active = selectedCategory === cat;
                 return (
                   <button
@@ -755,6 +785,26 @@ export function PointOfSaleDemo() {
                 </table>
               </div>
             )
+          ) : products.length === 0 ? (
+            <div className="grid min-h-80 place-items-center rounded-2xl border border-dashed bg-card p-10 text-center">
+              <div className="max-w-md space-y-3">
+                <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+                  <Boxes className="size-6" />
+                </div>
+                <h3 className="text-base font-semibold">Inventory is clean & ready</h3>
+                <p className="text-xs text-muted-foreground">
+                  All demo products have been cleared. Add your real products, pricing, and stock in the catalog to begin selling.
+                </p>
+                <div className="pt-2">
+                  <Link href="/products/new">
+                    <Button className="gap-2 font-semibold">
+                      <Plus className="size-4" />
+                      Add First Product
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
           ) : (
             <div className="grid min-h-60 place-items-center rounded-xl border border-dashed bg-card p-6 text-center">
               <div>

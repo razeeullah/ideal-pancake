@@ -1,13 +1,4 @@
-export type TileCategory =
-  | "All Products"
-  | "Wall Tiles"
-  | "Floor Tiles"
-  | "Porcelain"
-  | "Marble"
-  | "Mosaic"
-  | "Sanitary"
-  | "Adhesives"
-  | "Tools";
+export type TileCategory = string;
 
 export type PaymentMethod =
   | "CASH"
@@ -21,7 +12,7 @@ export interface PosProduct {
   id: string;
   sku: string;
   name: string;
-  category: Exclude<TileCategory, "All Products">;
+  category: string;
   brand: string;
   dimensions: string;
   finish: string;
