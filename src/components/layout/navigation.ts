@@ -1,3 +1,5 @@
+import type { PermissionKey } from "@/features/auth/permissions";
+
 export const NAVIGATION_ICON_KEYS = [
   "home",
   "sell",
@@ -251,5 +253,3 @@ export function findNavigationItemBySegment(
   }
   return navigationItems.find((item) => item.href === `/${segment}`);
 }
-
-import type { PermissionKey } from "@/features/auth/permissions";
