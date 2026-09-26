@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { PageTitle } from "@/components/layout/page-title";
 import { requirePermission } from "@/features/auth/session";
 import { listSales } from "@/features/sales/queries";
-import { Prisma } from "@/generated/prisma/client";
 import { formatKarachiDateTime } from "@/lib/dates";
 import { formatMoney, parseMoneyToMinor } from "@/lib/money";
 
@@ -27,15 +26,14 @@ export default async function SalesPage() {
   );
   const completed = sales.filter((sale) => sale.status === "COMPLETED");
   const returned = sales.filter(
-    (sale) => sale.status === "REFUNDED" || sale.refundedAmount.gt(0),
+    (sale) =>
+      sale.status === "REFUNDED" || Number(sale.refundedAmount ?? 0) > 0,
   );
   const total = completed.reduce(
-    (sum, sale) => sum.add(sale.total),
-    new Prisma.Decimal(0),
+    (sum, sale) => sum + Number(sale.total ?? 0),
+    0,
   );
-  const average = completed.length
-    ? total.dividedBy(completed.length)
-    : new Prisma.Decimal(0);
+  const average = completed.length ? total / completed.length : 0;
   const paymentCounts = sales.reduce<Record<string, number>>((counts, sale) => {
     for (const payment of sale.payments) {
       counts[payment.paymentMethod] = (counts[payment.paymentMethod] ?? 0) + 1;
@@ -111,10 +109,9 @@ export default async function SalesPage() {
                     15,
                     Math.min(
                       100,
-                      sale.total
-                        .dividedBy(total.eq(0) ? 1 : total)
-                        .mul(450)
-                        .toNumber(),
+                      Math.round(
+                        (Number(sale.total) / (total === 0 ? 1 : total)) * 450,
+                      ),
                     ),
                   )
                 : 15;
